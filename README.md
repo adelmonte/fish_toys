@@ -74,22 +74,6 @@ help
 ssh
 ```
 
-## 🔧 Configuration
-
-Many functions can be customized through Fish variables. Set these in your `config.fish` file:
-
-```fish
-# Theme configuration
-set -g theme_display_git yes
-set -g theme_display_virtualenv yes
-set -g theme_nerd_fonts yes
-set -g theme_powerline_fonts yes
-
-# Command history filter configuration
-set -g sponge_delay 5
-set -g sponge_purge_only_on_exit false
-```
-
 ## 📄 Dependencies
 
 - **fzf**: Required for fuzzy finding functionality
