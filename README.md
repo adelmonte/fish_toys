@@ -28,10 +28,6 @@ A curated collection of utility functions for the Fish shell that enhance produc
 - **`fzf_tab_complete`**: Robust tab completion with fuzzy finding
 - **Command not found handler**: Provides suggestions for mistyped commands
 
-### Theme Customization
-- **Bobthefish theme components**: A comprehensive Powerline-style theme
-- **Color schemes**: Carefully selected color themes for the shell
-
 ## 💻 Installation
 
 1. Clone this repository to your Fish functions directory:
