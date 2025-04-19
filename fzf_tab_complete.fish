@@ -11,26 +11,26 @@ function fzf_tab_complete
         return
     end
     
-    # Simply use fzf with the raw completions
-    # but format the display with awk for nice columns
-    set -l selection (printf "%s\n" $complist | 
-                    awk -F'\t' '{
-                        if (NF > 1) {
-                            printf "%-50s %s\n", $1, $2
-                        } else {
-                            print $1
-                        }
-                    }' | 
-                    fzf --height 40% --reverse)
+    # Use fzf to select a completion
+    set -l result (printf "%s\n" $complist | 
+                  awk -F'\t' '{
+                      if (NF > 1) {
+                          printf "%-50s %s\n", $1, $2
+                      } else {
+                          print $1
+                      }
+                  }' | 
+                  fzf --height 40% --reverse)
     
-    if test -n "$selection"
-        # Extract just the first word (the completion)
-        set -l completion (echo $selection | awk '{print $1}')
+    if test -n "$result"
+        # Extract only the first column (the actual completion)
+        set -l completion (echo $result | awk '{print $1}')
         
-        # Replace current token with selection
+        # Clear the current token and insert the completion
         commandline -t ""
-        commandline -i "$completion"
+        commandline -i -- "$completion"
     end
     
+    # Repaint the commandline
     commandline -f repaint
 end
