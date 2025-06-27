@@ -17,34 +17,50 @@ function ssh
         end
         command ssh $argv
     else
-        # Parse config with fixed-width columns
-        set -l host (awk '
-            BEGIN {
-                printf "%-20s %-20s %-10s\n", "HOST", "HOSTNAME", "USER"
-                printf "%-20s %-20s %-10s\n", "----", "--------", "----"
-            }
-            /^Host [^*]/ {
-                if (host != "") {
-                    hosts[++count] = sprintf("%-20s %-20s %-10s", host, hostname, user)
+        while true
+            set -l result (awk '
+                BEGIN {
+                    printf "%-20s %-20s %-10s\n", "HOST", "HOSTNAME", "USER"
+                    printf "%-20s %-20s %-10s\n", "----", "--------", "----"
                 }
-                host=$2
-                hostname=""
-                user=""
-            }
-            /HostName/ {hostname=$2}
-            /User/ {user=$2}
-            END {
-                if (host != "") {
-                    hosts[++count] = sprintf("%-20s %-20s %-10s", host, hostname, user)
+                /^Host [^*]/ {
+                    if (host != "") {
+                        hosts[++count] = sprintf("%-20s %-20s %-10s", host, hostname, user)
+                    }
+                    host=$2
+                    hostname=""
+                    user=""
                 }
-                for (i = count; i >= 1; i--) {
-                    print hosts[i]
+                /HostName/ {hostname=$2}
+                /User/ {user=$2}
+                END {
+                    if (host != "") {
+                        hosts[++count] = sprintf("%-20s %-20s %-10s", host, hostname, user)
+                    }
+                    for (i = count; i >= 1; i--) {
+                        print hosts[i]
+                    }
                 }
-            }
-        ' ~/.ssh/config | fzf --header-lines=2 --height 100% --reverse | awk "{print \$1}")
-        # not kitten ssh host
-        if test -n "$host"
-            commandline -r "ssh $host"
+            ' ~/.ssh/config | fzf --header-lines=2 --height 100% --reverse \
+                --bind 'del:execute-silent(echo {} | awk "{print \$1}" > /tmp/ssh_delete)+abort' \
+                --header="Enter to connect, Del to remove entry")
+            
+            if test -f /tmp/ssh_delete
+                set -l host_to_delete (cat /tmp/ssh_delete)
+                rm -f /tmp/ssh_delete
+                if test -n "$host_to_delete"
+                    sed -i "/^Host $host_to_delete\$/,/^Host /{ /^Host $host_to_delete\$/d; /^Host /!d; }" ~/.ssh/config
+                    sed -i "/^Host $host_to_delete\$/,/^\$/{/^Host $host_to_delete\$/d; /^\$/!d;}" ~/.ssh/config 
+                    echo "Removed $host_to_delete from SSH config"
+                    continue
+                end
+            else if test -n "$result"
+                set -l host (echo "$result" | awk '{print $1}')
+                commandline -r "ssh $host"
+                break
+            else
+                break
+            end
         end
     end
 end
