@@ -24,12 +24,15 @@ function fzf_tab_complete
                   fzf --height 40% --reverse --query="$token")
     
     if test -n "$result"
-        # Extract only the first column (the actual completion)
-        set -l completion (echo $result | awk '{print $1}')
+        # Extract completion, handling spaces and descriptions
+        set -l completion (echo $result | sed 's/  *.*$//')
         
-        # Clear the current token and insert the completion
+        # Escape spaces for shell
+        set -l escaped (string escape -- "$completion")
+        
+        # Clear the current token and insert the escaped completion
         commandline -t ""
-        commandline -i -- "$completion"
+        commandline -i -- "$escaped"
     end
     
     # Repaint the commandline
